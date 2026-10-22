@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# AITA data — keep large dumps and processed outputs out of git
+*.jsonl
+processed/
