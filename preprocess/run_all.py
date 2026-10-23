@@ -8,11 +8,12 @@ Runs, in order:
                              (link-id taken automatically from the sample post)
   4. analyze_processed.py -> cleaned word count + first date per split
 
-Everything is written under --out, and a combined summary is printed at the end.
+Everything is written to the repo's out/ folder (override with --out), and a
+combined summary is printed at the end.
 
 Usage (defaults assume the raw dumps sit in "D:/MSOE/CSC/NLP Data"):
     python preprocess/run_all.py
-    python preprocess/run_all.py --data-dir "D:/MSOE/CSC/NLP Data" --out "D:/MSOE/CSC/NLP Data/processed"
+    python preprocess/run_all.py --data-dir "D:/MSOE/CSC/NLP Data"
 """
 import argparse
 import json
@@ -40,12 +41,12 @@ def main():
     ap.add_argument("--data-dir", default="D:/MSOE/CSC/NLP Data",
                     help="folder containing the two raw *.jsonl dumps")
     ap.add_argument("--out", default=None,
-                    help="output dir (default: <data-dir>/processed)")
+                    help="output dir (default: <repo>/out)")
     args = ap.parse_args()
 
     posts = os.path.join(args.data_dir, "r_AmItheAsshole_posts.jsonl")
     comments = os.path.join(args.data_dir, "r_AmItheAsshole_comments.jsonl")
-    out = args.out or os.path.join(args.data_dir, "processed")
+    out = args.out or os.path.join(os.path.dirname(HERE), "out")  # <repo>/out
     os.makedirs(out, exist_ok=True)
 
     for p in (posts, comments):
