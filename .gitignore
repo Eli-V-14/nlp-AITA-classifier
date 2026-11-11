@@ -226,3 +226,10 @@ out/*.log
 out/*_scan.json
 !out/sample_posts.jsonl
 !out/sample_comments.jsonl
+
+# ML env & training artifacts
+.venv/
+__pycache__/
+out/trainer_tmp/
+out/*.log
+out/model/

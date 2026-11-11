@@ -1,0 +1,154 @@
+{
+  "test_n": 8000,
+  "test_natural_finetuned": {
+    "accuracy": 0.7346,
+    "macro_f1": 0.622,
+    "NTA": {
+      "precision": 0.8756,
+      "recall": 0.7859,
+      "f1": 0.8283
+    },
+    "YTA": {
+      "precision": 0.3512,
+      "recall": 0.5091,
+      "f1": 0.4156
+    }
+  },
+  "test_natural_majority": {
+    "accuracy": 0.8146,
+    "macro_f1": 0.4489,
+    "NTA": {
+      "precision": 0.8146,
+      "recall": 1.0,
+      "f1": 0.8978
+    },
+    "YTA": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    }
+  },
+  "confusion_matrix_true_pred": [
+    [
+      5122,
+      1395
+    ],
+    [
+      728,
+      755
+    ]
+  ],
+  "labels": [
+    "NTA",
+    "YTA"
+  ],
+  "test_rebalanced_finetuned": {
+    "accuracy": 0.6416,
+    "macro_f1": 0.6352,
+    "NTA": {
+      "precision": 0.6119,
+      "recall": 0.7741,
+      "f1": 0.6835
+    },
+    "YTA": {
+      "precision": 0.6927,
+      "recall": 0.5091,
+      "f1": 0.5869
+    }
+  },
+  "rebalanced_n": 2966,
+  "hand_cases_accuracy": 0.9231,
+  "hand_cases": [
+    {
+      "text": "AITA for refusing to give up my paid-for airplane seat so a family could sit together? I booked and paid extra for a window seat months ago. At boarding a mom asked me to move to a middle seat in the back so her and her kids could sit together. I said no and kept my seat.",
+      "expected": "NTA",
+      "predicted": "NTA",
+      "correct": true,
+      "note": "clear NTA; paid for the seat"
+    },
+    {
+      "text": "AITA for telling my sister her cooking was terrible in front of her guests at a dinner she spent all day preparing? Everyone went quiet and she started crying and left the room.",
+      "expected": "YTA",
+      "predicted": "YTA",
+      "correct": true,
+      "note": "clear YTA; cruel and public"
+    },
+    {
+      "text": "WIBTA if I skipped my best friend's destination wedding because I genuinely cannot afford the $3000 trip right now? I told her I can't come and she's furious and says I'm ruining her big day.",
+      "expected": "NTA",
+      "predicted": "YTA",
+      "correct": false,
+      "note": "financial limits are reasonable"
+    },
+    {
+      "text": "AITA for reporting my coworker to HR for taking credit for a project I did almost entirely by myself? He presented my work as his in a meeting and got praised for it.",
+      "expected": "NTA",
+      "predicted": "NTA",
+      "correct": true,
+      "note": "standing up for your own work"
+    },
+    {
+      "text": "AITA for grounding my 16 year old for a month and taking her phone because she got a B on one test? She studies hard and this was her first B all year.",
+      "expected": "YTA",
+      "predicted": "YTA",
+      "correct": true,
+      "note": "disproportionate punishment"
+    },
+    {
+      "text": "AITA for not inviting my in-laws to Thanksgiving after they repeatedly insulted my cooking and my parenting last year and never apologized?",
+      "expected": "NTA",
+      "predicted": "NTA",
+      "correct": true,
+      "note": "boundary after repeated disrespect"
+    },
+    {
+      "text": "AITA for eating the lunch my roommate labeled with her name in the fridge because I was hungry and didn't feel like going to the store?",
+      "expected": "YTA",
+      "predicted": "YTA",
+      "correct": true,
+      "note": "clear YTA; took labeled food"
+    },
+    {
+      "text": "AITA for asking my girlfriend to pay me back the $40 she borrowed three weeks ago? She says bringing it up makes me cheap and controlling.",
+      "expected": "NTA",
+      "predicted": "NTA",
+      "correct": true,
+      "note": "borderline; asking for repayment is reasonable"
+    },
+    {
+      "text": "AITA for telling my brother he can't bring his new girlfriend to our family vacation that we planned and paid for a year ago, since there's no room and we agreed no new partners?",
+      "expected": "NTA",
+      "predicted": "NTA",
+      "correct": true,
+      "note": "hard/ambiguous; prior agreement vs exclusion"
+    },
+    {
+      "text": "AITA for correcting my friend's pronunciation of a word in front of a group? He mispronounced it and I said the right way out loud. He got embarrassed and quiet.",
+      "expected": "YTA",
+      "predicted": "YTA",
+      "correct": true,
+      "note": "small but public embarrassment"
+    },
+    {
+      "text": "AITA for refusing to lend my car to my adult son after he crashed the last two cars I lent him and never paid for the damage?",
+      "expected": "NTA",
+      "predicted": "NTA",
+      "correct": true,
+      "note": "reasonable given history"
+    },
+    {
+      "text": "AITA for leaving a family dinner early because my uncle kept making loud political comments aimed at me and no one told him to stop?",
+      "expected": "NTA",
+      "predicted": "NTA",
+      "correct": true,
+      "note": "ambiguous; leaving vs engaging"
+    },
+    {
+      "text": "AITA for telling my pregnant wife she needs to stop eating so much junk food? I said it because I'm worried about her health but she started crying and said I called her fat.",
+      "expected": "YTA",
+      "predicted": "YTA",
+      "correct": true,
+      "note": "hard; good intent, hurtful delivery"
+    }
+  ]
+}
