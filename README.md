@@ -1,66 +1,66 @@
 # nlp-AITA-classifier
 
-Takes a story about some interpersonal conflict and guesses whether the person
-telling it is in the wrong. It's trained on r/AmItheAsshole posts and whatever
-verdict the community landed on, using a fine-tuned `roberta-base` that predicts
-**NTA** (not the a-hole) or **YTA** (you're the a-hole).
+A text classifier that predicts whether the author of an interpersonal conflict story is in the wrong. It is trained on Reddit r/AmItheAsshole posts and the community's final verdict. We fine-tune `roberta-base` (all weights, no LoRA) to predict **NTA** (Not the A-hole) or **YTA** (You're the A-hole).
 
-This is the prototype milestone, so it's the whole pipeline working end to end
-(data, training, inference, evaluation) with a baseline evaluation, not a
-finished model.
+This is the prototype milestone. It is a working end-to-end system (data, training, inference, evaluation) with baseline results, not a finished model. It only predicts the verdict. The explanation generator (BART) is not built yet.
 
-## What's in here
+## Repository layout
 
 ```
-preprocess/   cleaning + the pipeline that builds the labeled dataset (stdlib only)
-eda/          read-only scripts for poking at the raw/processed data
-model/        training, inference, evaluation, baselines
-out/          outputs: dataset samples, the saved model, metrics (big files git-ignored)
+preprocess/   cleaning script and the pipeline that builds the labeled dataset (standard library only)
+eda/          read-only scripts that explore the raw and processed data
+model/        training, baselines, inference, evaluation, and the hand-built eval cases
+out/          dataset samples and metric reports (the saved model and large files are not in git)
+requirements.txt   Python packages for the model code
 ```
-
-The dataset itself (`posts.jsonl`, ~757 MB) lives on external storage, not in
-git. See `preprocess/REPORT.md`.
 
 ## Requirements
 
-- **Python 3.12** for the model code. PyTorch doesn't have 3.14 wheels yet, and
-  3.14 is what was on the machine, so the model code runs in a 3.12 venv. The
-  `preprocess/` and `eda/` scripts are stdlib-only and run on anything.
-- A CUDA GPU helps a lot (built on an RTX 4070 SUPER, 12 GB). CPU works but it's
-  slow.
-- Packages: `torch` (CUDA build), `transformers`, `datasets`, `scikit-learn`,
-  `accelerate`.
+- **Python 3.12** for the model code. PyTorch has no wheels for Python 3.14 yet, so 3.14 will not work.
+- The `preprocess/` and `eda/` scripts use only the standard library and run on any Python 3.
+- A CUDA GPU is recommended. We trained on an RTX 4070 SUPER with 12 GB. CPU works but is slow, and training on CPU is not practical.
+- Packages are in `requirements.txt`: torch, transformers, datasets, accelerate, scikit-learn, numpy.
+- No API keys or outside services are needed. `roberta-base` is downloaded from Hugging Face the first time you train.
 
 ## Setup
+
+Windows (what we used):
 
 ```bash
 py -3.12 -m venv .venv
 .venv/Scripts/python.exe -m pip install --upgrade pip
 .venv/Scripts/python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu124
-.venv/Scripts/python.exe -m pip install transformers datasets scikit-learn accelerate
+.venv/Scripts/python.exe -m pip install -r requirements.txt
 ```
 
-## Data
+macOS or Linux: use `python3.12 -m venv .venv` and replace `.venv/Scripts/python.exe` with `.venv/bin/python` in every command in this README. Install the default `torch` build from pytorch.org instead of the cu124 one if you have no NVIDIA GPU.
 
-The model trains from `posts.jsonl` (one labeled post per line, already split
-into train/val/test). Build it from the raw dumps:
+## Getting the model and the data
+
+Two files are too large for git. Download them and put them in the places below.
+
+- **Saved model** (about 499 MB): download from `<model link>` and unzip it so the files sit in `out/model/`. With this you can run inference and evaluation without training anything.
+- **Dataset** `posts.jsonl` (about 757 MB, one cleaned labeled post per line with a train, val, or test split): download from `<dataset link>`. The model scripts read it from `D:/MSOE/CSC/NLP Data/processed/posts.jsonl` by default, so pass `--data path/to/posts.jsonl` to use your own location.
+
+The dataset is only needed for training, baselines, and evaluation on the test split. Inference on new text needs only the saved model.
+
+To rebuild the dataset from scratch, download the r/AmItheAsshole posts and comments with the Arctic Shift download tool (https://arctic-shift.photon-reddit.com/download-tool), then run:
 
 ```bash
-python preprocess/run_all.py --data-dir "<folder with the raw .jsonl dumps>"
+python preprocess/run_all.py --data-dir "<folder with the raw .jsonl files>"
 ```
 
-Or just point the scripts at a copy you already have with `--data <path>`. The
-default is `D:/MSOE/CSC/NLP Data/processed/posts.jsonl`.
-
-## Running it
-
-Train (saves the model to `out/model/`, so you only do this once):
+or just the cleaning step:
 
 ```bash
-.venv/Scripts/python.exe model/train.py --max-train 60000 --max-eval 8000 --epochs 3
+python preprocess/clean_aita.py --posts <raw posts .jsonl> --comments <raw comments .jsonl> --out <output folder>
 ```
 
-Predict on any post (loads the saved model, nothing retrains):
+See `preprocess/README.md` and `preprocess/REPORT.md` for the dataset statistics.
+
+## Execution
+
+**Predict on any new post** (loads the saved model, nothing is retrained):
 
 ```bash
 .venv/Scripts/python.exe model/infer.py --text "AITA for skipping my friend's wedding because I can't afford the trip?"
@@ -68,58 +68,90 @@ Predict on any post (loads the saved model, nothing retrains):
 echo "WIBTA if I reported my coworker for taking credit for my work?" | .venv/Scripts/python.exe model/infer.py
 ```
 
-Baselines (majority + TF-IDF, with cross-validation):
+You can also open `test_model.ipynb` with the `.venv` kernel if you would rather click through predictions in a notebook. It has example posts, a cell to type your own, and a batch run over the hand-built cases.
+
+**Evaluate** (test split metrics, rebalanced test set, and the 13 hand-built cases in `model/eval_cases.jsonl`):
 
 ```bash
-.venv/Scripts/python.exe model/baselines.py
+.venv/Scripts/python.exe model/evaluate.py --data path/to/posts.jsonl --max-test 8000
 ```
 
-Evaluate (test split, natural + rebalanced, plus the hand-written cases):
+**Baselines** (majority class, TF-IDF with logistic regression, TF-IDF with naive Bayes, and 5-fold cross-validation):
 
 ```bash
-.venv/Scripts/python.exe model/evaluate.py --max-test 8000
+.venv/Scripts/python.exe model/baselines.py --data path/to/posts.jsonl --max-train 60000 --max-test 8000
 ```
 
-There's also `test_model.ipynb` if you'd rather poke at it in a notebook.
+**Train** (only needed if you do not download the saved model; it saves to `out/model/`):
 
-### What the output looks like
+```bash
+.venv/Scripts/python.exe model/train.py --data path/to/posts.jsonl --max-train 60000 --max-eval 8000 --epochs 3
+```
 
-Input: `AITA for refusing to give up my paid-for window seat so a family could sit together?`
+Training settings are `roberta-base`, full fine-tune, a random 60,000 post subset of the train split, 3 epochs, batch size 32, learning rate 2e-5, max length 256 tokens, and class weights of 0.670 for NTA and 1.969 for YTA. Add `--max-train 500 --max-eval 200 --epochs 1` for a quick smoke test.
+
+## Example inputs and outputs
+
+Input:
+
+```bash
+python model/infer.py --text "AITA for refusing to give up my paid-for airplane seat so a family could sit together? I booked and paid extra for a window seat months ago. At boarding a mom asked me to move to a middle seat in the back so her and her kids could sit together. I said no and kept my seat."
+```
+
+Output:
 
 ```
 Verdict: NTA   (you are NOT the asshole)
-Probabilities: {'NTA': 0.9x, 'YTA': 0.0x}
+Probabilities: {'NTA': ..., 'YTA': ...}
+
+Note: this reflects how the r/AmItheAsshole community would likely vote, not an objective or moral judgement of the situation.
 ```
 
-Input: `AITA for eating the lunch my roommate labeled with her name in the fridge?`
+Input:
+
+```bash
+python model/infer.py --text "AITA for eating the lunch my roommate labeled with her name in the fridge because I was hungry and didn't feel like going to the store?"
+```
+
+Output:
 
 ```
 Verdict: YTA   (YOU are the asshole)
-Probabilities: {'NTA': 0.1x, 'YTA': 0.8x}
+Probabilities: {'NTA': ..., 'YTA': ...}
+
+Note: this reflects how the r/AmItheAsshole community would likely vote, not an objective or moral judgement of the situation.
 ```
 
-The verdict is the prediction, and the probabilities are how confident it is.
-Something close to 50/50 means it's genuinely unsure, which happens on the
-ambiguous ones.
+Both of these were predicted correctly in our evaluation. The exact probabilities will vary slightly between machines.
 
-## Limitations
+**How to read the output.** The verdict is the class with the higher probability. The two probabilities add up to 1 and show how confident the model is. A split close to 0.5 and 0.5 means the model is unsure, which is common for ambiguous stories. The note at the bottom is a reminder that the label is a prediction of the Reddit vote.
 
-- **Binary only.** We squash the five AITA verdicts down to NTA vs YTA (NAH→NTA,
-  ESH→YTA, and INFO/meta dropped), so there's no "everyone sucks" or "no a-holes
-  here" yet.
-- **Imbalanced.** About 76% of posts are NTA. We weight the loss to help, but the
-  model still leans NTA when it's unsure.
-- **The labels are subjective.** "Ground truth" is a Reddit vote, which is noisy
-  and reflects that crowd's norms, not an objective answer.
-- **Small scale on purpose.** Trains on a 60k slice of ~300k to keep it fast, and
-  it isn't tuned for best accuracy.
-- **Gap in the data.** The comments stop in March 2019 but posts run to mid-2022,
-  so the val/test posts have labels but no comment signal. More in
-  `preprocess/REPORT.md`.
-- **No explanations yet.** This is the verdict classifier only; the explanation
-  generator is still to come.
+## Results
+
+Natural test set (8,000 random posts from the test split):
+
+| Model | Accuracy | Macro-F1 | YTA-F1 |
+|---|---:|---:|---:|
+| Majority (all NTA) | 0.815 | 0.449 | 0.000 |
+| TF-IDF + Naive Bayes | 0.815 | 0.452 | 0.005 |
+| TF-IDF + Logistic Regression | 0.703 | 0.584 | 0.362 |
+| roberta-base (fine-tuned) | 0.735 | 0.622 | 0.416 |
+
+On a rebalanced 50/50 test set (2,966 posts) the fine-tuned model gets 0.642 accuracy and 0.635 macro-F1. On the 13 hand-built cases it gets 12 correct. The full numbers are in `out/eval_report.json` and `out/baseline_report.json`. Macro-F1 is our main metric because the majority baseline wins on accuracy only by predicting NTA for almost everything.
+
+## Known limitations
+
+- **Verdict only.** The explanation generator is not built yet. The system returns a verdict and probabilities, not a written explanation.
+- **Two labels.** The subreddit's five verdicts are folded into NTA and YTA (NAH goes to NTA, ESH goes to YTA, and INFO and Too Close to Call posts are dropped).
+- **Class imbalance.** About 76% of the posts are NTA. Training uses class weights, but the model still leans NTA on unclear input and its YTA precision is low (0.35).
+- **Noisy labels.** The label is a Reddit vote. It reflects that community's norms and not an objective judgement.
+- **Long posts are cut.** Only the first 256 tokens of a post are used, so the end of a long story is ignored.
+- **Subset training.** The model is trained on 60,000 of the 298,672 training posts, with fixed settings and no tuning.
+- **Test sample.** Evaluation uses a random 8,000 post sample of the 37,334 post test split, and the hand-built cases are only 13 examples.
+- **Comment gap.** The comments we downloaded stop in March 2019 while the posts run to June 2022. The validation and test posts have labels but no comment-based vote counts or explanation targets.
+- **Explicit language.** The data comes from Reddit and contains explicit language.
+- **Windows paths.** The default data path and the setup commands assume Windows. Other systems need the `--data` flag and the path changes described in Setup.
 
 ## Reproducing the numbers
 
-`out/eval_report.json` and `out/baseline_report.json` have the metrics;
-`preprocess/REPORT.md` has the dataset stats.
+`model/evaluate.py` writes `out/eval_report.json` and `model/baselines.py` writes `out/baseline_report.json`. Data sampling uses a fixed random seed (13), so the same posts are picked each run. The dataset statistics are in `preprocess/REPORT.md`.

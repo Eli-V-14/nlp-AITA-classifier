@@ -1,0 +1,9 @@
+# Python 3.12 only. PyTorch has no 3.14 wheels yet.
+# Install torch first with the CUDA index:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+torch>=2.4
+transformers>=4.44
+datasets>=2.20
+accelerate>=0.33
+scikit-learn>=1.5
+numpy>=1.26
