@@ -18,13 +18,13 @@ requirements.txt   Python packages for the model code
 
 - **Python 3.12** for the model code. PyTorch has no wheels for Python 3.14 yet, so 3.14 will not work.
 - The `preprocess/` and `eda/` scripts use only the standard library and run on any Python 3.
-- A CUDA GPU is recommended. We trained on an RTX 4070 SUPER with 12 GB. CPU works but is slow, and training on CPU is not practical.
+- A CUDA GPU is recommended (we used a consumer NVIDIA GPU with 12 GB of VRAM). CPU works but is slow, and training on CPU is not practical.
 - Packages are in `requirements.txt`: torch, transformers, datasets, accelerate, scikit-learn, numpy.
 - No API keys or outside services are needed. `roberta-base` is downloaded from Hugging Face the first time you train.
 
 ## Setup
 
-Windows (what we used):
+Windows:
 
 ```bash
 py -3.12 -m venv .venv
@@ -37,10 +37,10 @@ macOS or Linux: use `python3.12 -m venv .venv` and replace `.venv/Scripts/python
 
 ## Getting the model and the data
 
-Two files are too large for git. Download them and put them in the places below.
+Two files are too large for git. Download them and put them where the commands can find them.
 
 - **Saved model** (about 499 MB): download from `<model link>` and unzip it so the files sit in `out/model/`. With this you can run inference and evaluation without training anything.
-- **Dataset** `posts.jsonl` (about 757 MB, one cleaned labeled post per line with a train, val, or test split): download from `<dataset link>`. The model scripts read it from `D:/MSOE/CSC/NLP Data/processed/posts.jsonl` by default, so pass `--data path/to/posts.jsonl` to use your own location.
+- **Dataset** `posts.jsonl` (about 757 MB, one cleaned labeled post per line with a train, val, or test split): download from `<dataset link>` and pass its location to the scripts with `--data path/to/posts.jsonl`.
 
 The dataset is only needed for training, baselines, and evaluation on the test split. Inference on new text needs only the saved model.
 
@@ -150,7 +150,7 @@ On a rebalanced 50/50 test set (2,966 posts) the fine-tuned model gets 0.642 acc
 - **Test sample.** Evaluation uses a random 8,000 post sample of the 37,334 post test split, and the hand-built cases are only 13 examples.
 - **Comment gap.** The comments we downloaded stop in March 2019 while the posts run to June 2022. The validation and test posts have labels but no comment-based vote counts or explanation targets.
 - **Explicit language.** The data comes from Reddit and contains explicit language.
-- **Windows paths.** The default data path and the setup commands assume Windows. Other systems need the `--data` flag and the path changes described in Setup.
+- **System paths.** The setup commands assume Windows; on other systems use the path changes described in Setup. Pass the dataset location with `--data`.
 
 ## Reproducing the numbers
 
