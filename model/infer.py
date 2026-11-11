@@ -1,12 +1,11 @@
 """
-infer.py — predict the AITA verdict (NTA/YTA) for ANY new post text.
+Predict the AITA verdict (NTA or YTA) for a new post.
 
-Loads the saved fine-tuned model (no retraining) and prints the predicted
-verdict with class probabilities, plus a note that the verdict reflects how the
-Reddit community would likely respond — not an objective moral judgement
-(roadmap Stage 7, and the ethics caveat from Lourie et al. / Jiang et al.).
+Loads the saved model (no retraining) and prints the verdict, the probability for
+each class, and a reminder that this is only how the Reddit community would likely
+vote, not an objective call. That caveat is roadmap stage 7, and it echoes the
+ethics notes in Lourie et al. and Jiang et al.
 
-Usage:
     python model/infer.py --text "AITA for eating my roommate's leftovers?"
     python model/infer.py --file some_post.txt
     echo "WIBTA if I skipped the wedding?" | python model/infer.py

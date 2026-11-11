@@ -1,12 +1,10 @@
-"""Explore the r/AmItheAsshole POSTS dump.
+"""Explore the posts dump.
 
-Streams the posts JSONL and reports the things that matter for a verdict
-classifier: how many posts there are, the verdict (label) distribution, how
-much text each post has, how many are deleted/removed, and how the volume and
-label mix change over time. Writes a plain-text summary to stdout and a few
-CSVs you can plot (or feed to eda/plot.py).
+Streams the posts JSONL and reports what's useful before training: how many posts
+there are, the label distribution, how much text each one has, how many are
+deleted or removed, and how the volume and label mix shift over time. It prints a
+summary to the screen and writes a few CSVs you can plot (or hand to eda/plot.py).
 
-Usage:
     python eda/explore_posts.py "D:/MSOE/CSC/NLP Data/r_AmItheAsshole_posts.jsonl"
     python eda/explore_posts.py <path> --limit 100000      # quick sample
     python eda/explore_posts.py <path> --outdir eda/out     # where CSVs go

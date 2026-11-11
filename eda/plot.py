@@ -1,11 +1,10 @@
 """Turn the CSVs from explore_posts.py / explore_comments.py into PNG charts.
 
-This is the ONLY script that needs a third-party library. Install it with:
+This is the one script that needs a third-party library:
     pip install matplotlib
 
-Usage:
     python eda/plot.py --outdir eda/out
-PNGs are written next to the CSVs.
+The PNGs get written next to the CSVs.
 """
 from __future__ import annotations
 

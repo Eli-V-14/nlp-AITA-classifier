@@ -1,11 +1,10 @@
-"""Explore the r/AmItheAsshole COMMENTS dump.
+"""Explore the comments dump.
 
 Streams the comments JSONL and reports volume, score stats, and how often a
-canonical verdict code (YTA/NTA/ESH/NAH/INFO) appears in comment bodies. Also
-tallies the verdict codes found in *top-level* comments (parent_id starts with
-'t3_'), since those are the ones the community uses to decide a post's verdict.
+verdict code (YTA/NTA/ESH/NAH/INFO) shows up in comment bodies. It also counts
+the codes in top-level comments (parent_id starts with t3_), since those are the
+ones the community uses to settle a post's verdict.
 
-Usage:
     python eda/explore_comments.py "D:/MSOE/CSC/NLP Data/r_AmItheAsshole_comments.jsonl"
     python eda/explore_comments.py <path> --limit 200000
 """

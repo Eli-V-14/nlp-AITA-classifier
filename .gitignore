@@ -226,6 +226,8 @@ out/*.log
 out/*_scan.json
 !out/sample_posts.jsonl
 !out/sample_comments.jsonl
+!model/eval_cases.jsonl
+!out/stats.json
 
 # ML env & training artifacts
 .venv/
@@ -233,3 +235,4 @@ __pycache__/
 out/trainer_tmp/
 out/*.log
 out/model/
+out/*.zip

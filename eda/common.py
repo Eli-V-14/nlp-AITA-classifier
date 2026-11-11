@@ -1,9 +1,9 @@
 """Shared helpers for streaming the raw r/AmItheAsshole JSONL dumps.
 
-The dumps are multi-GB, so everything here reads one JSON object per line and
-never holds the whole file in memory. json from the stdlib is used so there are
-no third-party dependencies; if `orjson` happens to be installed it's used
-automatically because it's a few times faster.
+The dumps are a few GB each, so everything reads one JSON object per line and
+never holds the whole file in memory. It uses the stdlib json so there's nothing
+to install; if orjson happens to be around it uses that instead, since it's a bit
+faster.
 """
 from __future__ import annotations
 

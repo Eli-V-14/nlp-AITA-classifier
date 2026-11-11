@@ -1,12 +1,11 @@
 """
-baselines.py — simple baselines to put the fine-tuned model in context.
+Simple baselines, so the fine-tuned model has something to be measured against.
 
-Roadmap Stage 4 + evaluation plan: a majority-class predictor and TF-IDF with
-Logistic Regression / Naive Bayes (scikit-learn), reported with the same
-metrics as the transformer so the comparison is apples-to-apples. Includes a
-5-fold cross-validated macro-F1 on the train split (the roadmap names CV).
+This is roadmap stage 4: a majority-class predictor plus TF-IDF with Logistic
+Regression and Naive Bayes (scikit-learn). They're scored with the same metrics as
+the transformer so the comparison is fair, and there's a 5-fold cross-validated
+macro-F1 on the train split since the roadmap calls for cross-validation.
 
-Usage:
     python model/baselines.py --max-train 60000 --max-test 8000
 """
 from __future__ import annotations

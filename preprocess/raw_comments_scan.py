@@ -1,7 +1,7 @@
-"""Single streaming pass over the raw COMMENTS file.
+"""One streaming pass over the raw comments file.
 
-Produces (item 1) line count + date range, and (item 4) writes out verbatim
-every raw comment line belonging to the sample post (--link-id t3_<id>).
+Gives the line count and the date range, and writes out, exactly as they appear,
+every raw comment line that belongs to the sample post (--link-id t3_<id>).
 """
 import argparse, datetime as dt, json
 

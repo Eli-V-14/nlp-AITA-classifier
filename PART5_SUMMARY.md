@@ -1,111 +1,114 @@
-# Prototype Implementation & Initial Evaluation — Summary
+# Prototype Implementation and Initial Evaluation
 
-**Project:** AITA verdict classifier (predict NTA vs YTA from an interpersonal-conflict story)
-**Milestone:** Prototype Implementation and Initial Evaluation
+Project: predicting the verdict on an AITA post (NTA vs YTA) from the text of the story.
 
-## 1. Current implementation
+## 1. What we built
 
-**What works (end-to-end).** The prototype runs the full roadmap pipeline:
-data → preprocessing → training → inference → evaluation.
+The whole pipeline runs end to end now: raw Reddit data in, cleaning and
+labeling, training, and then either a prediction on a new post or an evaluation
+on the test set.
 
-- **Data (roadmap Stages 1–3).** Raw Reddit dumps are cleaned and labeled by
-  `preprocess/clean_aita.py`: removed/deleted/meta/short posts dropped, EDIT/UPDATE
-  sections and verdict tokens stripped (leakage control), verdict flair mapped to a
-  binary **NTA/YTA** label (NAH→NTA, ESH→YTA), top-level comment verdict counts kept,
-  and an oldest→newest train/val/test split. Result: **373,340 labeled posts**
-  (76% NTA / 24% YTA).
-- **Classifier (Stage 5).** `model/train.py` fine-tunes **roberta-base** (full
-  fine-tune, fixed hyperparameters, no search) with inverse-frequency class weighting
-  for the imbalance. The trained model is saved to `out/model/` and reused by
-  inference/evaluation (no retraining).
-- **Inference (Stage 7, partial).** `model/infer.py` accepts **any new post** (arg,
-  file, or stdin) and returns the verdict + class probabilities, with a note that the
-  result reflects how the Reddit community would likely vote — not an objective moral
-  judgement.
-- **Baselines & evaluation (Stage 4 + eval plan).** `model/baselines.py` (majority,
-  TF-IDF+LogReg, TF-IDF+NaiveBayes, 5-fold CV) and `model/evaluate.py` (natural +
-  rebalanced test sets, hand-built cases).
+On the data side (roadmap stages 1-3), `clean_aita.py` turns the raw dumps into
+a labeled dataset. It throws out posts that were deleted or removed, strips the
+EDIT/UPDATE sections and any verdict tags so the model can't cheat off them, and
+maps each post's flair to a binary label (NAH folds into NTA, ESH into YTA). We
+also keep the verdict counts from the top-level comments. After all the filtering
+we're left with 373,340 labeled posts, and they're lopsided: about 76% NTA to
+24% YTA.
 
-**What is incomplete.** The **explanation generator** (Stage 6, BART fine-tuned on
-agreeing top comments) is not built — only the verdict classifier. Full Stage-7
-integration (classifier → generator → combined output, web UI) is therefore partial:
-the classifier is wired end-to-end, the generator is future work. We also used a
-fixed train/val/test split for the transformer rather than k-fold cross-validation
-(CV is applied to the TF-IDF baseline).
+For the classifier we fine-tuned roberta-base on 60k of those posts. We kept the
+hyperparameters fixed instead of searching, since the papers we read said the
+search isn't worth the compute. We did weight the loss by class frequency,
+otherwise the model just learns to answer NTA every time. The trained model gets
+saved to `out/model/`, so running inference or evaluation doesn't retrain
+anything.
 
-## 2. Initial evaluation
+`infer.py` is the part a user actually interacts with. You give it a post (as an
+argument, a file, or piped in) and it prints the verdict, the probability for
+each class, and a line reminding you that this is only how Reddit would probably
+vote, not an objective ruling.
 
-**Task & metrics.** Binary verdict classification. Because the data is imbalanced
-(~81% NTA in the test split), we report **macro-F1 and per-class precision/recall**,
-not just accuracy, and compare against a **majority-class baseline** and **TF-IDF
-baselines** — exactly the failure mode the roadmap's literature (Efstathiadis et al.)
-warns about.
+What isn't done: the explanation generator. The plan was to fine-tune BART to
+write a short comment explaining the verdict, and we haven't gotten there. So the
+integration stage is only half built. The classifier side works start to finish;
+the explanation side doesn't exist yet. We also used a fixed train/val/test split
+for the transformer rather than cross-validation (we did run 5-fold CV on the
+TF-IDF baseline).
 
-**Evaluation data.** Held-out **test split** (n=8,000, never seen in training) plus a
-hand-written probe set of **13 typed cases** (easy + ambiguous), in the style a user
-would actually type — which differs from real Reddit posts.
+## 2. How we evaluated it
 
-**Baseline results (natural test set, n=8,000):**
+It's binary classification, so accuracy is the obvious metric, but accuracy is
+misleading here because the data is so imbalanced. A model that guesses NTA every
+single time already scores about 81% on our test set. So the numbers we actually
+pay attention to are macro-F1 and the per-class precision and recall, and we put
+them next to a majority-class baseline and two TF-IDF baselines. This is exactly
+the trap one of our papers (Efstathiadis et al.) fell into, so we were on the
+lookout for it.
+
+For test data we used the held-out test split (8,000 posts the model never saw
+in training) plus 13 short cases we wrote by hand, phrased the way a person would
+actually type a question rather than the way a Reddit post reads.
+
+Natural test set (n = 8,000):
 
 | Model | Accuracy | Macro-F1 | YTA-F1 |
 |---|---:|---:|---:|
 | Majority (all-NTA) | 0.815 | 0.449 | 0.000 |
 | TF-IDF + Naive Bayes | 0.815 | 0.452 | 0.005 |
 | TF-IDF + LogReg | 0.703 | 0.584 | 0.362 |
-| **roberta-base (fine-tuned)** | 0.735 | **0.622** | **0.416** |
+| roberta-base (fine-tuned) | 0.735 | **0.622** | 0.416 |
 
-5-fold CV macro-F1 (TF-IDF+LogReg): **0.592 ± 0.003**.
-Rebalanced 50/50 test set (n=2,966), fine-tuned model: accuracy **0.642**, macro-F1 **0.635**.
-Confusion matrix [true][pred], order [NTA, YTA]: `[[5122, 1395], [728, 755]]`.
+Cross-validated macro-F1 on the TF-IDF + LogReg model was 0.592 ± 0.003. On a
+rebalanced 50/50 test set the fine-tuned model got 0.642 accuracy and 0.635
+macro-F1. Confusion matrix (rows = true, columns = predicted, order NTA/YTA):
+`[[5122, 1395], [728, 755]]`.
 
-**Reading the results.** The fine-tuned model has **lower raw accuracy than the
-majority baseline (0.735 vs 0.815)** but the **best macro-F1 (0.622)** by a clear
-margin, because the baselines win accuracy only by predicting NTA for (almost)
-everything — they get YTA-F1 ≈ 0. The transformer actually identifies the YTA
-minority (recall 0.51). This is the same pattern reported in the cited papers, and is
-why macro metrics are the headline. On the rebalanced set the model is well above the
-0.5 chance level (0.642 accuracy, 0.635 macro-F1).
+The thing worth explaining is that our model has *lower* accuracy than the
+majority baseline (0.735 vs 0.815). That looks bad at first, but it's the whole
+point. The baselines only win on accuracy because they almost never predict YTA,
+which leaves their YTA-F1 at basically zero. Our model trades a bit of accuracy
+to actually catch YTA cases (recall 0.51), and that's why it has the best
+macro-F1 by a clear margin. The papers reported the same pattern.
 
-**Hand-built cases: 12 / 13 correct (0.92).**
+On the 13 hand-written cases it got 12 right.
 
-- *Successes:* "telling my sister her cooking was terrible in front of her guests" → **YTA**;
-  "refusing to give up my paid-for airplane seat" → **NTA**;
-  "eating the lunch my roommate labeled with her name" → **YTA**. Clear-cut cases are
-  handled confidently and correctly.
-- *Failure:* "WIBTA if I skipped my best friend's destination wedding because I can't
-  afford the $3000 trip?" → predicted **YTA**, expected **NTA**. A hypothetical
-  ("WIBTA") framed around wedding guilt; the model leans YTA, likely over-weighting the
-  "skipping a friend's big event" pattern over the financial-hardship justification.
+- It nailed the clear ones: telling your sister her cooking is terrible in front
+  of her guests (YTA), refusing to give up a seat you paid for (NTA), eating a
+  roommate's clearly labeled food (YTA).
+- The one it missed: "WIBTA if I skipped my best friend's destination wedding
+  because I can't afford the $3000 trip?" It said YTA; we'd call it NTA. It's a
+  hypothetical built around wedding guilt, and the model seems to grab onto
+  "skipping a friend's big event" and ignore the can't-afford-it part.
 
-**What the metrics do NOT measure.** Agreement with the Reddit verdict measures how an
-online community would judge, not moral correctness; raw accuracy hides minority-class
-failure (hence macro metrics); and none of this measures how users react to the output.
+One caveat about all of these numbers: agreeing with Reddit isn't the same as
+being morally right. We're measuring whether the model predicts how one online
+crowd would vote, nothing more than that.
 
-## 3. Challenges and next steps
+## 3. Problems we hit and what's next
 
-**Challenges encountered.**
-- *Class imbalance* is the central difficulty — accuracy is misleading, so the whole
-  evaluation is built around macro metrics, class weighting, and a rebalanced set.
-- *Noisy, subjective labels* (a Reddit vote) cap achievable accuracy, consistent with
-  the literature (posts are much noisier than comments).
-- *Data coverage gap:* comments stop at 2019-03 while posts run to 2022-06, so the
-  val/test posts have labels but no comment-derived signal (see `preprocess/REPORT.md`).
-- *Tooling:* running on a brand-new Python (3.14) with no PyTorch wheels required a
-  separate 3.12 environment; preprocessing streams multi-GB files in binary mode to
-  avoid a Windows text-mode error.
+The class imbalance is the main headache, and it shows up everywhere. It's why
+accuracy is useless on its own, why we weight the loss, and why we test on a
+rebalanced set too. The labels are also just noisy. A Reddit verdict is a crowd
+opinion, not a fact, so there's a ceiling on how well any model can do here.
 
-**Biggest current weaknesses.** YTA recall (0.51) and precision (0.35) are modest — the
-model still misses or over-calls roughly half of YTA cases; and the system is
-classifier-only (no explanations yet).
+A data issue we ran into: the comment dump stops in March 2019 but the posts run
+to mid-2022, so the newer posts (which is what the val and test splits are) have
+labels but no comment signal. More on that in `preprocess/REPORT.md`. On the
+tooling side, the machine was on Python 3.14, which PyTorch doesn't support yet,
+so we set up a separate 3.12 environment for the model code.
 
-**Priorities before final submission.**
-1. Build the **explanation generator** (Stage 6) and integrate it (Stage 7).
-2. Improve YTA detection — train on more of the 300k set, tune the decision threshold,
-   and handle posts longer than 256 tokens deliberately.
-3. Add the Lourie-style **soft-label / vote-proportion** evaluation using the stored
-   vote counts.
-4. Package a simple interface for the integrated verdict + explanation.
+Where the model is weakest right now is YTA: recall is 0.51 and precision is
+0.35, so it's still missing or over-calling roughly half of them. And again,
+there's no explanation component yet.
 
-**Artifacts:** `out/model/` (saved model), `out/eval_report.json`,
-`out/baseline_report.json`, `out/train.log`; dataset built by `preprocess/`; see the
-top-level `README.md` to run everything.
+For the final version, roughly in order:
+1. Build the explanation generator and connect it to the classifier.
+2. Get YTA detection up. Train on more of the 300k posts, tune the decision
+   threshold, and handle posts longer than 256 tokens.
+3. Add the soft-label / vote-proportion evaluation using the counts we already
+   stored.
+4. Put a simple interface on the whole thing.
+
+Artifacts: the saved model is in `out/model/`, the metrics are in
+`out/eval_report.json` and `out/baseline_report.json`, and the top-level
+`README.md` covers how to run everything.

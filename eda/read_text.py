@@ -1,8 +1,8 @@
-"""Read the actual TEXT of the collected data (not just aggregate stats).
+"""Read the actual text of the data, not just the aggregate stats.
 
-Browse post bodies with their community verdict, filter them, look one up by
-id, or pull the comments attached to a post. Streams the files, so it works on
-the full multi-GB dumps. Stdlib only.
+Browse post bodies with their verdict, filter them, look one up by id, or pull
+the comments on a post. It streams the files, so it works on the full multi-GB
+dumps, and it's stdlib only.
 
 Examples
 --------

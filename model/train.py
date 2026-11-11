@@ -1,15 +1,16 @@
 """
-train.py — fine-tune a RoBERTa classifier to predict AITA verdict (NTA/YTA).
+Fine-tune roberta-base to predict an AITA verdict (NTA or YTA).
 
-Full fine-tune of roberta-base (all weights), matching the project roadmap's
-"fine-tune a RoBERTa-base-sized encoder with fixed hyperparameters" stage.
-Inverse-frequency class weighting handles the 76/24 label imbalance. Saves the
-model + tokenizer + metrics to out/model/ so inference never retrains.
+This is a full fine-tune (all the weights, not LoRA), which is what the roadmap's
+"fine-tune a RoBERTa-base encoder with fixed hyperparameters" stage asks for. The
+loss is weighted by class frequency so the 76/24 imbalance doesn't just push every
+prediction to NTA. The model, tokenizer, and metrics get saved to out/model/, so
+you never have to retrain just to run inference.
 
-Usage (quick smoke test):
+Quick smoke test:
     python model/train.py --max-train 500 --max-eval 200 --epochs 1
 
-Usage (baseline):
+Real run:
     python model/train.py --max-train 60000 --max-eval 8000 --epochs 3
 """
 from __future__ import annotations

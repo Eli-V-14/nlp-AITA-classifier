@@ -1,19 +1,19 @@
 """
-build_samples.py — make a small, real sample for rebuilding processed examples.
+Build a small, real sample we can use to rebuild processed examples by hand.
 
-Picks N raw posts (default 5) created 2019 or later that contain an EDIT the
-cleaner would cut, have a mappable verdict flair, and have comments. For each
-chosen post it then finds the top K top-level comments by score (default 2),
-looked up by post id, and writes their raw comment lines.
+Picks N raw posts (5 by default) from 2019 or later that have an EDIT the cleaner
+would cut, a flair that maps to a label, and at least one comment. For each of
+those posts it pulls the top K top-level comments by score (2 by default), found
+by post id, and writes out their raw comment lines.
 
-Outputs (verbatim raw lines, so they can be reprocessed):
+It writes the lines exactly as they appear in the dump, so they can be fed back
+through the cleaner:
     --out-posts     one raw post line per sample post
-    --out-comments  the top-K raw comment lines for each sample post
+    --out-comments  the top-K raw comment lines per sample post
 
-By default the samples are written into the repo's samples/ folder (they are
-small and meant to be committed); point --out-* elsewhere to override.
+Both default to the repo's out/ folder (the files are small and meant to be
+committed); pass --out-* to send them somewhere else.
 
-Usage:
     python preprocess/build_samples.py \
         --posts "D:/MSOE/CSC/NLP Data/r_AmItheAsshole_posts.jsonl" \
         --comments "D:/MSOE/CSC/NLP Data/r_AmItheAsshole_comments.jsonl"

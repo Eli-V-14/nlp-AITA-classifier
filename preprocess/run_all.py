@@ -1,17 +1,16 @@
 """
-run_all.py - one command to produce every required result.
+Run the whole preprocessing in one shot and print a combined summary at the end.
 
-Runs, in order:
-  1. clean_aita.py        -> processed/posts.jsonl, explanations.jsonl, stats.json
+It runs these in order:
+  1. clean_aita.py        -> out/posts.jsonl, explanations.jsonl, stats.json
   2. raw_posts_scan.py    -> posts_scan.json + sample_post.jsonl (raw 2019+ EDIT post)
   3. raw_comments_scan.py -> comments_scan.json + sample_comments.jsonl
-                             (link-id taken automatically from the sample post)
+                             (link-id taken from the sample post automatically)
   4. analyze_processed.py -> cleaned word count + first date per split
 
-Everything is written to the repo's out/ folder (override with --out), and a
-combined summary is printed at the end.
+Everything goes to the repo's out/ folder (use --out to change that). The
+defaults assume the raw dumps sit in "D:/MSOE/CSC/NLP Data".
 
-Usage (defaults assume the raw dumps sit in "D:/MSOE/CSC/NLP Data"):
     python preprocess/run_all.py
     python preprocess/run_all.py --data-dir "D:/MSOE/CSC/NLP Data"
 """

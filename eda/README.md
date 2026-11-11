@@ -1,33 +1,33 @@
-# EDA — exploring the collected r/AmItheAsshole data
+# EDA: looking at the r/AmItheAsshole data
 
-Dependency-free (stdlib-only) scripts to look at the raw Reddit dumps before
-training the classifier. They **stream** the JSONL line by line, so they work
-on the multi-GB files without loading them into memory.
+A few stdlib-only scripts for poking at the raw Reddit dumps before training.
+They stream the JSONL line by line, so they handle the multi-GB files without
+loading everything into memory.
 
-Data files (not in this repo):
-- `D:/MSOE/CSC/NLP Data/r_AmItheAsshole_posts.jsonl`  (~3.8 GB)
+The data files aren't in the repo:
+- `D:/MSOE/CSC/NLP Data/r_AmItheAsshole_posts.jsonl` (~3.8 GB)
 - `D:/MSOE/CSC/NLP Data/r_AmItheAsshole_comments.jsonl` (~2.9 GB)
 
 ## Run
 
 ```bash
-# posts: verdict/label distribution, text length, volume & verdict mix over time
+# posts: verdict/label distribution, text length, volume and verdict mix over time
 python eda/explore_posts.py "D:/MSOE/CSC/NLP Data/r_AmItheAsshole_posts.jsonl"
 
 # comments: volume, scores, and uppercase verdict codes (YTA/NTA/...) in bodies
 python eda/explore_comments.py "D:/MSOE/CSC/NLP Data/r_AmItheAsshole_comments.jsonl"
 ```
 
-Use `--limit N` for a fast sample (e.g. `--limit 100000`) while iterating; drop
-it to process the whole file (a few minutes each). Both write CSVs to
-`eda/out/` (override with `--outdir`).
+Add `--limit N` for a quick sample while you're iterating (say `--limit 100000`),
+or drop it to run the whole file, which takes a few minutes each. Both write CSVs
+to `eda/out/` (change that with `--outdir`).
 
-## Look at the actual text / rows (`read_text.py`)
+## Reading the actual text or rows (read_text.py)
 
 `explore_*.py` give you numbers; `read_text.py` shows the data itself.
 
 ```bash
-# compact table: one row per record (auto-detects posts vs comments)
+# compact table, one row per record (figures out posts vs comments on its own)
 python eda/read_text.py rows <posts.jsonl> --exclude-removed --n 50
 python eda/read_text.py rows <posts.jsonl> --verdict YTA --n 30
 python eda/read_text.py rows <posts.jsonl> --csv --n 1000 > sample.csv   # export
@@ -40,36 +40,36 @@ python eda/read_text.py posts <posts.jsonl> --id 1fy0bx --full
 # the comments under one post
 python eda/read_text.py comments <comments.jsonl> --link-id 1fy0bx --n 20
 
-# the TOP 2 comments for a post, ranked by score (top-level only)
+# the top 2 comments for a post, ranked by score (top-level only)
 python eda/read_text.py comments <comments.jsonl> --link-id 1fy0bx --top 2 --top-level --full
 ```
 
-`--top N` collects that post's comments and returns the N highest-scored (it
-requires `--link-id`). Add `--top-level` to ignore replies, and `--verdicts-only`
-to keep just comments that contain a verdict code. Without `--top`, comments come
-out in file order, capped by `--n`.
+`--top N` grabs that post's comments and keeps the N highest-scored, so it needs
+`--link-id`. Add `--top-level` to skip replies, or `--verdicts-only` to keep just
+the comments with a verdict code in them. Without `--top`, comments come out in
+file order, capped by `--n`.
 
-Filters (`--verdict`, `--contains`, `--exclude-removed`, `--min-len`) work the
-same across `rows` and `posts`. `rows --csv` streams a CSV to stdout so you can
+The filters (`--verdict`, `--contains`, `--exclude-removed`, `--min-len`) work the
+same way on `rows` and `posts`. `rows --csv` prints a CSV to stdout, so you can
 redirect it to a file or open it in a spreadsheet.
 
 ## Charts (optional)
 
-The only script needing a third-party library:
+This is the one script that needs a third-party library:
 
 ```bash
 pip install matplotlib
 python eda/plot.py --outdir eda/out
 ```
 
-Produces `verdict_distribution.png`, `posts_by_month.png`, `length_buckets.png`,
+It makes `verdict_distribution.png`, `posts_by_month.png`, `length_buckets.png`,
 and `verdict_by_month.png` (verdict mix over time).
 
 ## What the label looks like
 
-The classifier's label is the community verdict on each **post**, stored in
-`link_flair_text`. The wording/capitalization drifted over the years, so
-`common.normalize_verdict()` folds every variant into one canonical code:
+The classifier's label is the community verdict on each post, stored in
+`link_flair_text`. The wording and capitalization drifted over the years, so
+`common.normalize_verdict()` folds all the variants into one code:
 
 | code | meaning | example raw flairs |
 |------|---------|--------------------|
@@ -82,17 +82,17 @@ The classifier's label is the community verdict on each **post**, stored in
 | `META` | meta/shitpost/troll | `META`, `Shitpost`, `Troll` |
 | `UNFLAIRED` | no verdict yet | `null` / empty |
 
-## Caveats worth knowing before training
+## Things to know before training
 
-- **Many posts are unusable as training rows.** On an early sample ~44% have
-  `selftext` of `[deleted]`/`[removed]`/empty, and ~33% are `UNFLAIRED` (no
-  verdict). `explore_posts.py` reports both — the usable set is posts that have
-  BOTH real text AND a verdict in {NTA, YTA, ESH, NAH, INFO}.
-- **The label is heavily imbalanced** (~60%+ NTA). Plan for class weighting or
+- A lot of posts can't be used as training rows. On an early sample about 44% have
+  `selftext` of `[deleted]`, `[removed]`, or empty, and about 33% are `UNFLAIRED`
+  (no verdict). `explore_posts.py` reports both. The usable set is the posts that
+  have both real text and a verdict in {NTA, YTA, ESH, NAH, INFO}.
+- The labels are heavily imbalanced (60%+ NTA), so plan on class weighting or
   resampling.
-- **Comment verdict detection is case-sensitive on purpose.** Verdicts are typed
-  in uppercase; matching lowercase would count the English words "nah"/"info" as
-  votes. Even so, treat comment-derived verdicts as noisy — the post flair is the
-  authoritative label.
-- The very earliest data (2013+) predates the modern YTA/NTA convention, so old
-  flairs/comments are sparser and messier.
+- Comment verdict detection is case-sensitive on purpose. People type the verdicts
+  in uppercase, and matching lowercase would count the ordinary words "nah" and
+  "info" as votes. Even then, treat comment-derived verdicts as noisy; the post
+  flair is the label we actually trust.
+- The earliest data (2013 on) predates the modern YTA/NTA convention, so those old
+  flairs and comments are sparser and messier.

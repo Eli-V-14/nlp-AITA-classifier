@@ -1,0 +1,17 @@
+{
+  "raw_posts": 1385631,
+  "dropped_no_verdict_flair": 17987,
+  "dropped_too_short": 1061,
+  "dropped_removed_or_deleted_text": 993013,
+  "dropped_duplicate": 229,
+  "dropped_removed_by_moderator": 1,
+  "posts_after_cleaning": 373340,
+  "raw_comments": 2247059,
+  "verdict_comments_on_kept_posts": 482208,
+  "split_train": 298672,
+  "label_NTA": 284151,
+  "label_YTA": 89189,
+  "split_val": 37334,
+  "split_test": 37334,
+  "explanations": 50355
+}

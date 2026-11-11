@@ -1,4 +1,4 @@
-"""Item 3: cleaned word count + earliest date in each split, from posts.jsonl."""
+"""Cleaned word count and the earliest date in each split, read from posts.jsonl."""
 import json, sys, datetime as dt
 
 path = sys.argv[1]

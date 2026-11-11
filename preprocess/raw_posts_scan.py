@@ -1,9 +1,9 @@
-"""Single streaming pass over the raw POSTS file.
+"""One streaming pass over the raw posts file.
 
-Produces (item 1) line count + total raw selftext word count + date range, and
-(item 4) picks one real sample post: created 2019 or later, with an EDIT the
-cleaner would actually cut, a mappable verdict flair, real text, and comments.
-The sample's ORIGINAL raw line is written out verbatim.
+Gives the line count, the total raw selftext word count, and the date range, and
+also picks one real sample post: created 2019 or later, with an EDIT the cleaner
+would actually cut, a flair that maps to a label, real text, and comments. It
+writes that post's original raw line out as-is.
 """
 import argparse, datetime as dt, json, re
 

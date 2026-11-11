@@ -1,14 +1,13 @@
 """
-evaluate.py — Part 2 initial evaluation of the fine-tuned AITA classifier.
+Part 2 evaluation of the fine-tuned classifier.
 
-Reports on the held-out TEST split (never seen in training):
-  * NATURAL test set: accuracy, per-class P/R/F1, macro-F1, confusion matrix
-  * REBALANCED test set (50/50 by downsampling NTA) — the roadmap's eval plan
-  * majority-class baseline for comparison
-Then runs the hand-built eval_cases.jsonl and prints each prediction with
-success/failure, so the report can quote concrete examples.
+Everything here runs on the held-out test split, which the model never saw while
+training. It reports the natural test set (accuracy, per-class precision/recall/F1,
+macro-F1, confusion matrix), a rebalanced 50/50 version of it (downsampling NTA,
+which the roadmap's eval plan asks for), and a majority-class baseline to compare
+against. Then it runs the hand-written cases in eval_cases.jsonl and marks each one
+right or wrong, so the report has concrete examples to point at.
 
-Usage:
     python model/evaluate.py --max-test 8000
 """
 from __future__ import annotations

@@ -1,4 +1,4 @@
-"""Shared helpers for the AITA LoRA classifier (data loading, label maps, paths)."""
+"""Shared helpers for the classifier: loading the data, label maps, and paths."""
 from __future__ import annotations
 
 import json
